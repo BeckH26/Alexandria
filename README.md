@@ -13,9 +13,6 @@
 
 [![Release](https://img.shields.io/badge/release-v1.0.0-blue.svg)](https://github.com/alexandria-media/alexandria/releases)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-brightgreen.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![CI](https://img.shields.io/badge/CI-passing-brightgreen.svg)](.github/workflows/ci.yml)
-[![Jellyfin](https://img.shields.io/badge/Jellyfin-Compliant-purple.svg)](https://jellyfin.org/)
 
 Alexandria is a terminal-based media workstation for finding, downloading, and watching anime, television series, and movies. It combines multiple streaming and catalog backends into a single clean CLI, downloads full seasons with fast multi-threaded HLS remuxing, organizes everything into Jellyfin-ready folders, and keeps track of your watch history so you can pick up right where you left off.
 
