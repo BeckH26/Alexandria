@@ -33,7 +33,7 @@ jobs:
     - name: Syntax and lint check
       run: |
         python -m py_compile run.py cli.py progress.py scraper.py
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=Book_Files,booker,.venv,__pycache__
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=media,Book_Files,.venv,__pycache__
 
     - name: CLI interface verification
       run: |

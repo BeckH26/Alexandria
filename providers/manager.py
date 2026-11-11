@@ -108,7 +108,7 @@ class ProviderManager:
         language: str = "english",
         voice_pref: str = "dub",
         strict_voice: bool = False,
-        output_dir: str = "Book_Files/anime",
+        output_dir: str = "media/anime",
         overwrite: bool = False,
         delay: float = 0.5,
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
@@ -162,7 +162,7 @@ class ProviderManager:
         ep_num: int,
         ep_title: str,
         year: Optional[str] = None,
-        output_dir: str = "Book_Files/tv",
+        output_dir: str = "media/tv",
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> bool:
         """Download a TV show episode in standard Jellyfin directory layout."""
@@ -195,7 +195,7 @@ class ProviderManager:
         quality: str = "best",
         voice_pref: str = "dub",
         strict_voice: bool = False,
-        output_dir: str = "Book_Files",
+        output_dir: str = "media",
         overwrite: bool = False,
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> Dict[str, Any]:

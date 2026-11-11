@@ -1933,7 +1933,7 @@ def interactive_configure_download_dir(scraper: MediaScraper):
         print(f"  Dedicated Mode: Direct {paths.get('dedicated_type').upper()} library targeted")
     print("------------------------------------------------------------------------")
     print("Enter a new directory path (e.g. D:\\Jellyfin or C:\\Media\\Movies),")
-    print("[D] to reset to default (Book_Files),")
+    print("[D] to reset to default (media),")
     print("[O] to open current folder in File Explorer,")
     print("or press [Enter] to keep current setting.")
     val = input("\nPath / Choice: ").strip()
@@ -1945,7 +1945,7 @@ def interactive_configure_download_dir(scraper: MediaScraper):
         config.open_in_file_manager(curr_dir)
         return
     if val.lower() in ("d", "default"):
-        val = os.path.join(config.PROJECT_DIR, "Book_Files")
+        val = os.path.join(config.PROJECT_DIR, config.DEFAULT_FOLDER_NAME)
 
     ok, msg, new_paths = config.set_download_dir(val)
     if ok:

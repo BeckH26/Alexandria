@@ -52,7 +52,7 @@ Strictly zero emojis. 100% native CLI with interactive menus and real-time progr
 5. **Jellyfin Media Server Standard Compliance**:
    - Automatically organizes all downloaded anime, television, and movie media into Jellyfin-compliant directory hierarchies:
      ```text
-     Book_Files/
+     media/
      ├── anime/
      │   └── Hunter x Hunter (2011)/
      │       └── Season 01/

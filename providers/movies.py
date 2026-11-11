@@ -6,7 +6,7 @@ Supports:
 - Internet Archive (Archive.org) Feature Films, Classic Movies, Sci-Fi, Horror, Film Noir, and Public Domain Cinema.
 - Direct URL / HLS stream movie downloading with FFmpeg container repair (+faststart).
 - Jellyfin-compliant movie library organization:
-    Book_Files/movies/<Movie Title> (<Year>)/<Movie Title> (<Year>).mp4
+    media/movies/<Movie Title> (<Year>)/<Movie Title> (<Year>).mp4
 Strictly 100% text-based with zero emojis.
 """
 
@@ -410,7 +410,7 @@ class MovieProvider:
         quality: str = "best",
         voice_pref: str = "dub",
         strict_voice: bool = False,
-        output_dir: str = "book_files",
+        output_dir: str = "media",
         overwrite: bool = False,
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> Dict[str, Any]:

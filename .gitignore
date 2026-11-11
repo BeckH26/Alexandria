@@ -31,6 +31,8 @@ ENV/
 htmlcov/
 
 # Local media storage & downloads (Jellyfin directories)
+media/
+Media/
 Book_Files/
 book_files/
 downloads/

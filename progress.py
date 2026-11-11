@@ -1,12 +1,11 @@
 """
-progress.py - Anime & TV Video Watching Progress Tracking for Alexandria.
+progress.py - Anime, TV & Movie Video Watching Progress Tracking for Alexandria.
 
 Tracks and persists:
-- Visual reading progress (chapter number, page number, total pages, percent completed).
-- Audio listening progress (chapter number, timestamp/position in milliseconds, track name).
-- Webtoon reading progress (chapter index, panel index, total panels, percent).
-- Video watching progress for Anime & TV Shows (episode file, relative path, season/episode numbers,
-  watched episode checklist, watched count, total episodes, percentage, and timestamps).
+- Video watching progress for Anime, Television Shows, and Feature Films.
+- Episode files, relative paths, season/episode numbers, and movie runtimes.
+- Watched episode checklists, watched count, total episodes, percentage, and timestamps.
+- Exact seek positions, durations, and completion statuses for instant quick-resume.
 - Central library activity log to enable instant 1-click resume from the main menu.
 - 100% text-based with zero emojis.
 """
@@ -93,10 +92,8 @@ def load_series_progress(series_dir: str) -> Dict[str, Any]:
                     "last_watched": watch_data.get("timestamp")
                 }
 
-    data.setdefault("reading", None)
-    data.setdefault("audio", None)
-    data.setdefault("toon", None)
     data["watch"] = watch_data
+    data.setdefault("media_type", "video")
     data.setdefault("last_updated", None)
     return data
 
@@ -111,14 +108,14 @@ def _save_series_progress(series_dir: str, data: Dict[str, Any]):
     except Exception as e:
         print(f"[!] Warning: Could not save progress to {p_file}: {e}")
 
-    # Update immediate parent directory index (e.g. Book_Files/anime or Book_Files)
+    # Update immediate parent directory index (e.g. media/anime or media)
     parent_dir = os.path.dirname(os.path.abspath(series_dir))
     _update_library_index(parent_dir, data)
 
-    # If parent is a media subcategory, also update its grandparent (root library like Book_Files)
+    # If parent is a media subcategory, also update its grandparent (root media library)
     grandparent_dir = os.path.dirname(parent_dir)
     p_basename = os.path.basename(parent_dir).lower()
-    if p_basename in ("anime", "tv", "shows", "toons", "manhwa", "webtoons", "novels", "books"):
+    if p_basename in ("anime", "tv", "movies", "shows", "films"):
         _update_library_index(grandparent_dir, data)
 
 def _update_library_index(output_dir: str, series_data: Dict[str, Any]):
@@ -136,10 +133,7 @@ def _update_library_index(output_dir: str, series_data: Dict[str, Any]):
     watch_data = series_data.get("watch") or series_data.get("anime") or series_data.get("tv")
     index[s_name] = {
         "series": s_name,
-        "media_type": series_data.get("media_type"),
-        "reading": series_data.get("reading"),
-        "audio": series_data.get("audio"),
-        "toon": series_data.get("toon"),
+        "media_type": series_data.get("media_type") or "video",
         "watch": watch_data,
         "last_updated": series_data.get("last_updated")
     }
@@ -149,100 +143,6 @@ def _update_library_index(output_dir: str, series_data: Dict[str, Any]):
             json.dump(index, f, indent=2, ensure_ascii=False)
     except Exception:
         pass
-
-def save_reading_progress(
-    series_dir: str,
-    chapter_num: int,
-    chapter_file: str,
-    chapter_title: str = "",
-    page: int = 1,
-    total_pages: int = 1,
-    total_chapters: int = 1
-):
-    """Save user's current reading position in a series."""
-    prog = load_series_progress(series_dir)
-    ch_pct = (chapter_num / max(1, total_chapters)) * 100.0
-    page_pct = (page / max(1, total_pages)) * 100.0
-
-    prog["media_type"] = "novel"
-    prog["reading"] = {
-        "chapter_num": chapter_num,
-        "chapter_file": chapter_file,
-        "chapter_title": chapter_title or f"Chapter {chapter_num}",
-        "page": page,
-        "total_pages": total_pages,
-        "total_chapters": total_chapters,
-        "chapter_percent": round(ch_pct, 1),
-        "page_percent": round(page_pct, 1),
-        "timestamp": datetime.now().isoformat()
-    }
-    _save_series_progress(series_dir, prog)
-
-def get_reading_progress(series_dir: str) -> Optional[Dict[str, Any]]:
-    """Retrieve reading progress for a series."""
-    prog = load_series_progress(series_dir)
-    return prog.get("reading")
-
-def save_audio_progress(
-    series_dir: str,
-    chapter_num: int,
-    chapter_file: str,
-    chapter_title: str = "",
-    position_ms: int = 0,
-    total_chapters: int = 1
-):
-    """Save user's current audio listening position."""
-    prog = load_series_progress(series_dir)
-    ch_pct = (chapter_num / max(1, total_chapters)) * 100.0
-
-    prog["audio"] = {
-        "chapter_num": chapter_num,
-        "chapter_file": chapter_file,
-        "chapter_title": chapter_title or f"Chapter {chapter_num}",
-        "position_ms": max(0, int(position_ms)),
-        "position_str": format_time(position_ms),
-        "total_chapters": total_chapters,
-        "chapter_percent": round(ch_pct, 1),
-        "timestamp": datetime.now().isoformat()
-    }
-    _save_series_progress(series_dir, prog)
-
-def get_audio_progress(series_dir: str) -> Optional[Dict[str, Any]]:
-    """Retrieve audio listening progress for a series."""
-    prog = load_series_progress(series_dir)
-    return prog.get("audio")
-
-def save_toon_progress(
-    series_dir: str,
-    chapter_idx: int,
-    chapter_title: str = "",
-    panel_idx: int = 0,
-    total_panels: int = 1,
-    total_chapters: int = 1
-):
-    """Save user's current reading position in a webtoon series."""
-    prog = load_series_progress(series_dir)
-    tot_p = max(1, total_panels)
-    panel_pct = round(((panel_idx + 1) / tot_p) * 100, 1)
-
-    prog["media_type"] = "webtoon"
-    prog["toon"] = {
-        "chapter_index": chapter_idx,
-        "chapter_num": chapter_idx + 1,
-        "chapter_title": chapter_title,
-        "panel_index": panel_idx,
-        "panel_num": panel_idx + 1,
-        "total_panels": total_panels,
-        "total_chapters": total_chapters,
-        "chapter_percent": panel_pct,
-        "timestamp": datetime.now().isoformat()
-    }
-    _save_series_progress(series_dir, prog)
-
-def get_toon_progress(series_dir: str) -> Optional[Dict[str, Any]]:
-    """Retrieve webtoon reading progress for a series."""
-    prog = load_series_progress(series_dir)
-    return prog.get("toon")
 
 def save_watch_progress(
     series_dir: str,
@@ -557,16 +457,16 @@ def get_anime_progress(series_dir: str) -> Optional[Dict[str, Any]]:
 
 def get_last_active_series(output_dir: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
-    Find the series that the user most recently read, listened to, or watched across the library.
-    Scans root library and media subfolders (anime, tv, shows, toons, movies).
-    Returns dict with series name, media_type, reading, audio, toon, watch, and path.
+    Find the series that the user most recently watched across the library.
+    Scans root library and media subfolders (anime, tv, shows, movies).
+    Returns dict with series name, media_type, watch, and path.
     """
     if output_dir is None:
         try:
             import config
             output_dir = config.get_download_dir()
         except Exception:
-            output_dir = "Book_Files"
+            output_dir = "media"
 
     candidates = []
 
@@ -581,7 +481,7 @@ def get_last_active_series(output_dir: Optional[str] = None) -> Optional[Dict[st
                         val["series"] = s_name
                         s_path = os.path.join(output_dir, s_name)
                         if not os.path.isdir(s_path):
-                            for sub in ["anime", "tv", "movies", "shows", "toons", "Anime", "TV", "TV Shows", "Movies", "Films"]:
+                            for sub in ["anime", "tv", "movies", "shows", "Anime", "TV", "TV Shows", "Movies", "Films"]:
                                 cand_sp = os.path.join(output_dir, sub, s_name)
                                 if os.path.isdir(cand_sp):
                                     s_path = cand_sp
@@ -592,8 +492,8 @@ def get_last_active_series(output_dir: Optional[str] = None) -> Optional[Dict[st
         except Exception:
             pass
 
-    # 2. Check subcategory library_progress.json (anime, tv, movies, shows, toons)
-    for sub in ["anime", "tv", "movies", "shows", "toons", "Anime", "TV", "TV Shows", "Movies", "Films"]:
+    # 2. Check subcategory library_progress.json (anime, tv, movies, shows)
+    for sub in ["anime", "tv", "movies", "shows", "Anime", "TV", "TV Shows", "Movies", "Films"]:
         sub_dir = os.path.join(output_dir, sub)
         sub_index = _get_library_index_file(sub_dir)
         if os.path.exists(sub_index):
@@ -622,8 +522,8 @@ def get_last_active_series(output_dir: Optional[str] = None) -> Optional[Dict[st
     except Exception:
         pass
 
-    for sub in ["anime", "tv", "movies", "shows", "toons", "anime_files", "tv_files", "movie_files", "Anime", "TV", "TV Shows", "Movies", "Films"]:
-        sd = os.path.join(output_dir, sub) if sub in ("anime", "tv", "movies", "shows", "toons", "Anime", "TV", "TV Shows", "Movies", "Films") else sub
+    for sub in ["anime", "tv", "movies", "shows", "anime_files", "tv_files", "movie_files", "Anime", "TV", "TV Shows", "Movies", "Films"]:
+        sd = os.path.join(output_dir, sub) if sub in ("anime", "tv", "movies", "shows", "Anime", "TV", "TV Shows", "Movies", "Films") else sub
         if os.path.isdir(sd) and sd not in search_dirs:
             search_dirs.append(sd)
 
@@ -665,9 +565,6 @@ def get_last_active_series(output_dir: Optional[str] = None) -> Optional[Dict[st
             c_path = c.get("path")
             if c_path and os.path.isdir(c_path):
                 p_full = load_series_progress(c_path)
-                c["reading"] = p_full.get("reading") or c.get("reading")
-                c["audio"] = p_full.get("audio") or c.get("audio")
-                c["toon"] = p_full.get("toon") or c.get("toon")
                 c["watch"] = p_full.get("watch") or c.get("watch") or p_full.get("anime") or p_full.get("tv")
                 if not c.get("media_type"):
                     c["media_type"] = p_full.get("media_type")

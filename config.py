@@ -10,7 +10,7 @@ import json
 import subprocess
 from typing import Dict, Any, Optional, Tuple
 
-DEFAULT_FOLDER_NAME = "Book_Files"
+DEFAULT_FOLDER_NAME = "media"
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_CONFIG_FILE = os.path.join(PROJECT_DIR, "config.json")
 USER_CONFIG_DIR = os.path.expanduser("~/.alexandria")
@@ -74,8 +74,8 @@ def get_download_dir() -> str:
     Returns the configured media download directory.
     Priority:
       1. Persistent config.json 'download_dir'
-      2. Existing Book_Files or book_files in project directory
-      3. Default Book_Files in project directory
+      2. Existing media directory (media, Media, or legacy Book_Files)
+      3. Default media directory in project root
     """
     cfg = load_config()
     custom_dir = cfg.get("download_dir")
@@ -83,7 +83,7 @@ def get_download_dir() -> str:
         sanitized = sanitize_input_path(custom_dir)
         return sanitized
 
-    for candidate in ["Book_Files", "book_files"]:
+    for candidate in ["media", "Media", "Book_Files", "book_files"]:
         p = os.path.join(PROJECT_DIR, candidate)
         if os.path.isdir(p):
             return os.path.abspath(p)

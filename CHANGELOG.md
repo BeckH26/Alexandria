@@ -38,9 +38,9 @@ Alexandria 1.0.0 is the foundational release of the high-performance, terminal-n
 
 - **Jellyfin Media Server Standard Compliance**:
   - Automatic organization into Jellyfin-compliant directory structures:
-    - `Book_Files/anime/<Series> (<Year>)/Season <XX>/<Series> (<Year>) - S<XX>E<YY>.mp4`
-    - `Book_Files/tv/<Series> (<Year>)/Season <XX>/<Series> (<Year>) - S<XX>E<YY>.mp4`
-    - `Book_Files/movies/<Title> (<Year>)/<Title> (<Year>).mp4`
+    - `media/anime/<Series> (<Year>)/Season <XX>/<Series> (<Year>) - S<XX>E<YY>.mp4`
+    - `media/tv/<Series> (<Year>)/Season <XX>/<Series> (<Year>) - S<XX>E<YY>.mp4`
+    - `media/movies/<Title> (<Year>)/<Title> (<Year>).mp4`
 
 - **Desktop Playback & Watch Progress Tracker (`--progress`)**:
   - Native video player launch across Windows (`os.startfile`), macOS (`open`), and Linux (`xdg-open`).

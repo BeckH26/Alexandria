@@ -73,6 +73,6 @@ Providers are located under `providers/`. When adding a new provider:
    ```
 4. Verify code conforms to PEP 8 syntax standards:
    ```bash
-   flake8 --max-line-length=120 --exclude=Book_Files,booker,.venv,__pycache__
+   flake8 --max-line-length=120 --exclude=media,Book_Files,.venv,__pycache__
    ```
 5. Submit your Pull Request against the `main` branch with a clear description of the problem solved.

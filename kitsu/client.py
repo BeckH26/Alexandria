@@ -2,7 +2,7 @@ import requests
 from typing import List, Dict, Any, Optional
 
 class KitsuClient:
-    """Client for querying Kitsu API (categories, manga, novels)."""
+    """Client for querying Kitsu API (anime, movies, OVAs, categories)."""
 
     BASE_URL = "https://kitsu.io/api/edge"
     HEADERS = {
@@ -83,14 +83,13 @@ class KitsuClient:
     def get_media_by_category(
         self,
         category_slug: Any,
-        subtype: Optional[str] = "novel",
+        subtype: Optional[str] = None,
         limit: int = 15,
         offset: int = 0
     ) -> List[Dict[str, Any]]:
         """
         Fetch media items for a specific category or multiple categories.
         category_slug can be a single slug string or a list of category slug strings.
-        If subtype is 'novel' and returns no items, automatically falls back to all subtypes.
         """
         if isinstance(category_slug, (list, tuple)):
             cat_filter = ",".join(str(s).strip().lower() for s in category_slug if str(s).strip())
@@ -108,23 +107,12 @@ class KitsuClient:
 
         try:
             resp = self.session.get(
-                f"{self.BASE_URL}/manga",
+                f"{self.BASE_URL}/anime",
                 headers=self.HEADERS,
                 params=params,
                 timeout=10
             )
             data = resp.json().get("data", []) if resp.ok else []
-
-            # If filtered by novel and empty, try without subtype filter
-            if not data and subtype == "novel":
-                del params["filter[subtype]"]
-                resp = self.session.get(
-                    f"{self.BASE_URL}/manga",
-                    headers=self.HEADERS,
-                    params=params,
-                    timeout=10
-                )
-                data = resp.json().get("data", []) if resp.ok else []
 
             results = []
             for item in data:
@@ -154,7 +142,7 @@ class KitsuClient:
         subtype: Optional[str] = None,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
-        """Search Kitsu media by text query."""
+        """Search Kitsu media by text query across anime and media catalogs."""
         params = {
             "filter[text]": query,
             "page[limit]": limit
@@ -164,14 +152,23 @@ class KitsuClient:
 
         try:
             resp = self.session.get(
-                f"{self.BASE_URL}/manga",
+                f"{self.BASE_URL}/anime",
                 headers=self.HEADERS,
                 params=params,
                 timeout=10
             )
-            if not resp.ok:
-                return []
-            data = resp.json().get("data", [])
+            data = resp.json().get("data", []) if resp.ok else []
+
+            # If no anime results, check general manga/source catalog
+            if not data:
+                resp_alt = self.session.get(
+                    f"{self.BASE_URL}/manga",
+                    headers=self.HEADERS,
+                    params=params,
+                    timeout=10
+                )
+                data = resp_alt.json().get("data", []) if resp_alt.ok else []
+
             results = []
             for item in data:
                 attrs = item.get("attributes", {})
@@ -197,7 +194,7 @@ class KitsuClient:
     @staticmethod
     def extract_search_keywords(item: Dict[str, Any]) -> List[str]:
         """
-        Extract candidate title queries to search for this novel across providers.
+        Extract candidate title queries to search for this media title across providers.
         Returns a deduplicated list of search keywords.
         """
         candidates = []
