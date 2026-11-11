@@ -18,6 +18,8 @@ dist/
 wheels/
 *.whl
 *.tar.gz
+*.exe
+*.spec
 
 # Virtual environments
 .venv/

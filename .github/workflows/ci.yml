@@ -67,3 +67,33 @@ jobs:
       run: |
         python -m pip install dist/*.whl
         alexandria --help
+
+  build-exe:
+    runs-on: windows-latest
+    needs: test
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip pyinstaller
+        pip install -r requirements.txt
+
+    - name: Build Standalone Windows Executable
+      run: |
+        python -m PyInstaller --noconfirm --clean --onefile --name alexandria --add-data "providers/tokyoinsider_catalog.json;providers" --collect-submodules providers --collect-submodules kitsu --hidden-import requests --hidden-import urllib3 --hidden-import bs4 --hidden-import tqdm run.py
+
+    - name: Test Executable
+      run: |
+        .\dist\alexandria.exe --help
+
+    - name: Upload Windows Executable Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: alexandria-windows-x64
+        path: dist/alexandria.exe

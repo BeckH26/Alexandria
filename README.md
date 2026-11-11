@@ -76,10 +76,12 @@ Strictly zero emojis. 100% native CLI with interactive menus and real-time progr
 
 ## Installation
 
-### Prerequisites
-- Python 3.10 or newer
-- FFmpeg (recommended for container optimization and remuxing; bundled fallback provided via `imageio-ffmpeg`)
-- Standard desktop media player (MPV, VLC, or system default player)
+### Standalone Executable (Windows)
+For Windows users who prefer not to manage a Python environment:
+1. Download `alexandria.exe` from the latest [GitHub Release](https://github.com/alexandria-media/alexandria/releases).
+2. Place `alexandria.exe` in any folder of your choice (e.g. `C:\Tools\Alexandria` or your media drive).
+3. Open a terminal or double-click `alexandria.exe` to launch the interactive studio workstation.
+4. All features, provider scrapers, and video resume tracking work out-of-the-box with zero setup.
 
 ### From Source
 ```bash
@@ -93,6 +95,14 @@ pip install -r requirements.txt
 # Or install in editable mode with development tools
 pip install -e ".[dev]"
 ```
+
+### Building the Standalone Executable
+To package your own standalone single-file `alexandria.exe`:
+```bash
+python -m pip install pyinstaller
+python -m PyInstaller --noconfirm --clean --onefile --name alexandria --add-data "providers/tokyoinsider_catalog.json;providers" --collect-submodules providers --collect-submodules kitsu --hidden-import requests --hidden-import urllib3 --hidden-import bs4 --hidden-import tqdm run.py
+```
+The resulting executable will be generated at `dist/alexandria.exe`.
 
 ---
 

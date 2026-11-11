@@ -11,7 +11,10 @@ import subprocess
 from typing import Dict, Any, Optional, Tuple
 
 DEFAULT_FOLDER_NAME = "media"
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, "frozen", False):
+    PROJECT_DIR = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_CONFIG_FILE = os.path.join(PROJECT_DIR, "config.json")
 USER_CONFIG_DIR = os.path.expanduser("~/.alexandria")
 USER_CONFIG_FILE = os.path.join(USER_CONFIG_DIR, "config.json")

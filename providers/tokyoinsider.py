@@ -9,6 +9,7 @@ and sub/dub audio voice preference matching.
 """
 
 import os
+import sys
 import re
 import time
 import base64
@@ -232,7 +233,18 @@ class TokyoInsiderProvider:
         self._page = None
         self._kitsu = None
         self._catalog = None
-        self._local_catalog_file = os.path.join(os.path.dirname(__file__), "tokyoinsider_catalog.json")
+        base_dir = getattr(sys, '_MEIPASS', None)
+        if base_dir:
+            cand1 = os.path.join(base_dir, "providers", "tokyoinsider_catalog.json")
+            cand2 = os.path.join(base_dir, "tokyoinsider_catalog.json")
+            if os.path.exists(cand1):
+                self._local_catalog_file = cand1
+            elif os.path.exists(cand2):
+                self._local_catalog_file = cand2
+            else:
+                self._local_catalog_file = os.path.join(os.path.dirname(__file__), "tokyoinsider_catalog.json")
+        else:
+            self._local_catalog_file = os.path.join(os.path.dirname(__file__), "tokyoinsider_catalog.json")
         self._catalog_file = os.path.join(tempfile.gettempdir(), "tokyoinsider_catalog_v2.json")
         self._browse_cache: Dict[Tuple[Any, ...], List[Dict[str, Any]]] = {}
         atexit.register(self.close_browser)
