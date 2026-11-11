@@ -5,19 +5,26 @@ from typing import Optional, Callable, Dict, Any, List, Tuple
 from tqdm import tqdm
 
 from providers.manager import ProviderManager
+import config
 
 class MediaScraper:
-    """Universal anime and television media orchestrator for Alexandria."""
+    """Universal anime, television, and movie media orchestrator for Alexandria."""
 
-    def __init__(self, output_dir: str = "Book_Files"):
-        if not os.path.exists(output_dir):
-            for existing in ["Book_Files", "book_files"]:
-                if os.path.exists(existing):
-                    output_dir = existing
-                    break
-        os.makedirs(output_dir, exist_ok=True)
-        self.output_dir = output_dir
+    def __init__(self, output_dir: Optional[str] = None):
+        if not output_dir:
+            self.output_dir = config.get_download_dir()
+        else:
+            self.output_dir = config.sanitize_input_path(output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
         self.providers = ProviderManager()
+
+    def get_media_dir(self, media_type: str) -> str:
+        """Returns the resolved Jellyfin directory for the requested media type."""
+        return config.get_media_dir(media_type, self.output_dir)
+
+    def resolve_jellyfin_paths(self) -> Dict[str, Any]:
+        """Returns the resolved Jellyfin library subfolder mapping."""
+        return config.resolve_jellyfin_paths(self.output_dir)
 
     def search_anime(self, query: str, limit: int = 20, provider: str = "all") -> List[Dict[str, Any]]:
         """Search anime series across HiAnime and TokyoInsider."""
@@ -53,12 +60,7 @@ class MediaScraper:
         provider: str = "auto"
     ) -> Dict[str, Any]:
         """Download anime episodes in standard Jellyfin directory layout."""
-        if output_dir:
-            target_dir = output_dir
-        elif os.path.exists(os.path.join(self.output_dir, "anime")):
-            target_dir = os.path.join(self.output_dir, "anime")
-        else:
-            target_dir = os.path.join(self.output_dir, "anime")
+        target_dir = output_dir or config.get_media_dir("anime", self.output_dir)
 
         return self.providers.download_anime(
             slug_or_url,
@@ -95,7 +97,7 @@ class MediaScraper:
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> bool:
         """Download a TV show episode in standard Jellyfin directory layout."""
-        target_dir = output_dir or os.path.join(self.output_dir, "tv")
+        target_dir = output_dir or config.get_media_dir("tv", self.output_dir)
         return self.providers.download_tv_episode(
             media_url,
             series_title,
@@ -130,7 +132,7 @@ class MediaScraper:
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> Dict[str, Any]:
         """Download a movie in Jellyfin format with container repair."""
-        target_dir = output_dir or self.output_dir
+        target_dir = output_dir or config.get_media_dir("movie", self.output_dir)
         return self.providers.download_movie(
             movie_target,
             quality=quality,

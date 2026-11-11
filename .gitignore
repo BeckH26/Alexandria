@@ -48,6 +48,7 @@ downloads/
 # Local state, database & progress history
 library_progress.json
 progress.json
+config.json
 *.log
 *.tmp
 

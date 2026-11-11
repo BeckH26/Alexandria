@@ -160,6 +160,29 @@ python run.py --play-tv "Breaking Bad"
 python run.py --progress
 ```
 
+### Download Directory & Jellyfin Configuration
+Alexandria allows you to set your media destination to any local, external, or network folder (including direct Jellyfin library paths) and open it from the CLI.
+
+```bash
+# Configure download directory to your Jellyfin media root
+python run.py --set-download-dir "D:\Jellyfin\Media"
+
+# Or configure directly to a dedicated library (e.g. Movies only)
+python run.py --set-download-dir "D:\Jellyfin\Movies"
+
+# Open configured download directory immediately in File Explorer / Finder
+python run.py --open-folder
+
+# View current configuration and resolved Jellyfin paths
+python run.py --config
+```
+
+#### Jellyfin Auto-Detection
+When you set Alexandria's download folder to your Jellyfin media directory:
+1. **Unified Media Roots**: Automatically routes movies to `Movies/`, TV shows to `TV Shows/` (or `tv/`), and anime to `Anime/` without requiring manual folder management.
+2. **Dedicated Libraries**: If you target a specific library folder (e.g. `D:\Jellyfin\Movies`), Alexandria detects this and places `<Movie Title> (<Year>)` folders directly inside it without creating redundant nested `movies/` subdirectories.
+3. **Zero-Transcode Compatibility**: All downloads are formatted into standard Jellyfin naming structures and repaired with FFmpeg `+faststart` atoms for instant Direct Play without server-side transcoding lag.
+
 ---
 
 ## Architecture & Directory Structure

@@ -47,6 +47,12 @@ Alexandria 1.0.0 is the foundational release of the high-performance, terminal-n
   - Centralized watch progress database (`library_progress.json`) tracking watched episodes, movies, timestamps, runtime completion percentage, and last-watched positions.
   - Quick 1-click resume shortcut (`W`) in the main interactive menu to continue the next unwatched episode or in-progress film.
 
+- **Persistent Download Directory & Jellyfin Library Integration (`--set-download-dir`, `--open-folder`, `--config`)**:
+  - Direct configuration of custom download and Jellyfin media directories with persistent storage in `config.json`.
+  - Native file manager launcher opening destination directory from CLI (`--open-folder`) or interactive menu (`[9]`).
+  - Intelligent Jellyfin library structure resolution: automatically routes anime, tv, and movies into existing libraries (`Movies`, `TV Shows`, `Anime`) or dedicated single-library directories without redundant folder nesting.
+  - Interactive configuration dialog in main menu (`[10]` or `[S]`) and media library viewer (`[S]`).
+
 - **Packaging and Distribution**:
   - Standardized modern `pyproject.toml` and `setup.py` packaging.
   - CLI console script entry point `alexandria`.

@@ -137,13 +137,28 @@ def play_video_file(file_path: str, series_dir: Optional[str] = None):
         print(f"Failed to open video player: {e}")
 
 def get_anime_directories(scraper: MediaScraper) -> List[str]:
-    """Returns valid anime directory roots, checking configured and legacy folders."""
-    candidates = [
-        os.path.join(scraper.output_dir, "anime"),
-        "anime_files"
-    ]
-    existing = [c for c in candidates if os.path.isdir(c)]
-    return existing if existing else [candidates[0]]
+    """Returns valid anime directory roots, checking configured Jellyfin and legacy folders."""
+    import config
+    paths = config.resolve_jellyfin_paths(scraper.output_dir)
+    resolved = paths["anime"]
+    candidates = [resolved]
+    if paths.get("is_dedicated_library") and paths.get("dedicated_type") == "anime":
+        candidates.append(scraper.output_dir)
+    else:
+        for sub in ["anime", "Anime"]:
+            p = os.path.join(scraper.output_dir, sub)
+            candidates.append(p)
+    candidates.append("anime_files")
+
+    seen = set()
+    existing = []
+    for c in candidates:
+        if c and os.path.isdir(c):
+            norm = os.path.normcase(os.path.abspath(c))
+            if norm not in seen:
+                seen.add(norm)
+                existing.append(c)
+    return existing if existing else [resolved]
 
 def get_anime_series_folder(scraper: MediaScraper, title: str, vintage: str = "") -> str:
     """Finds existing anime series folder (checking Jellyfin and legacy naming) or returns default target location."""
@@ -170,14 +185,28 @@ def get_anime_series_folder(scraper: MediaScraper, title: str, vintage: str = ""
     return os.path.join(primary, jellyfin_title)
 
 def get_tv_directories(scraper: MediaScraper) -> List[str]:
-    """Returns valid TV series directory roots, checking configured and legacy folders."""
-    candidates = [
-        os.path.join(scraper.output_dir, "tv"),
-        "tv_files",
-        "shows"
-    ]
-    existing = [c for c in candidates if os.path.isdir(c)]
-    return existing if existing else [candidates[0]]
+    """Returns valid TV series directory roots, checking configured Jellyfin and legacy folders."""
+    import config
+    paths = config.resolve_jellyfin_paths(scraper.output_dir)
+    resolved = paths["tv"]
+    candidates = [resolved]
+    if paths.get("is_dedicated_library") and paths.get("dedicated_type") == "tv":
+        candidates.append(scraper.output_dir)
+    else:
+        for sub in ["tv", "TV", "TV Shows", "tv shows", "shows", "Shows"]:
+            p = os.path.join(scraper.output_dir, sub)
+            candidates.append(p)
+    candidates.extend(["tv_files", "shows"])
+
+    seen = set()
+    existing = []
+    for c in candidates:
+        if c and os.path.isdir(c):
+            norm = os.path.normcase(os.path.abspath(c))
+            if norm not in seen:
+                seen.add(norm)
+                existing.append(c)
+    return existing if existing else [resolved]
 
 def get_tv_series_folder(scraper: MediaScraper, title: str, year: Optional[str] = None) -> str:
     """Finds existing TV series folder or returns default target Jellyfin location."""
@@ -198,14 +227,28 @@ def get_tv_series_folder(scraper: MediaScraper, title: str, year: Optional[str] 
 
 
 def get_movie_directories(scraper: MediaScraper) -> List[str]:
-    """Returns valid movie directory roots, checking configured and legacy folders."""
-    candidates = [
-        os.path.join(scraper.output_dir, "movies"),
-        "movie_files",
-        "movies"
-    ]
-    existing = [c for c in candidates if os.path.isdir(c)]
-    return existing if existing else [candidates[0]]
+    """Returns valid movie directory roots, checking configured Jellyfin and legacy folders."""
+    import config
+    paths = config.resolve_jellyfin_paths(scraper.output_dir)
+    resolved = paths["movie"]
+    candidates = [resolved]
+    if paths.get("is_dedicated_library") and paths.get("dedicated_type") == "movie":
+        candidates.append(scraper.output_dir)
+    else:
+        for sub in ["movies", "Movies", "films", "Films"]:
+            p = os.path.join(scraper.output_dir, sub)
+            candidates.append(p)
+    candidates.extend(["movie_files", "movies"])
+
+    seen = set()
+    existing = []
+    for c in candidates:
+        if c and os.path.isdir(c):
+            norm = os.path.normcase(os.path.abspath(c))
+            if norm not in seen:
+                seen.add(norm)
+                existing.append(c)
+    return existing if existing else [resolved]
 
 def get_movie_folder(scraper: MediaScraper, title: str, year: Optional[str] = None) -> str:
     """Finds existing movie folder or returns default target Jellyfin location."""
@@ -1731,7 +1774,8 @@ def list_downloaded(scraper: MediaScraper):
             continue
         for d in sorted(os.listdir(a_root)):
             s_path = os.path.join(a_root, d)
-            if not os.path.isdir(s_path) or s_path in seen_paths:
+            s_norm = os.path.normcase(os.path.abspath(s_path))
+            if not os.path.isdir(s_path) or s_norm in seen_paths:
                 continue
             vids = []
             for r_dir, _, files in os.walk(s_path):
@@ -1739,7 +1783,7 @@ def list_downloaded(scraper: MediaScraper):
                     if f.lower().endswith(('.mp4', '.mkv', '.avi', '.webm')) and not f.endswith(".part"):
                         vids.append(f)
             if vids:
-                seen_paths.add(s_path)
+                seen_paths.add(s_norm)
                 items.append({
                     "name": d,
                     "title": d,
@@ -1755,7 +1799,8 @@ def list_downloaded(scraper: MediaScraper):
             continue
         for d in sorted(os.listdir(t_root)):
             s_path = os.path.join(t_root, d)
-            if not os.path.isdir(s_path) or s_path in seen_paths:
+            s_norm = os.path.normcase(os.path.abspath(s_path))
+            if not os.path.isdir(s_path) or s_norm in seen_paths:
                 continue
             vids = []
             for r_dir, _, files in os.walk(s_path):
@@ -1763,7 +1808,7 @@ def list_downloaded(scraper: MediaScraper):
                     if f.lower().endswith(('.mp4', '.mkv', '.avi', '.webm')) and not f.endswith(".part"):
                         vids.append(f)
             if vids:
-                seen_paths.add(s_path)
+                seen_paths.add(s_norm)
                 items.append({
                     "name": d,
                     "title": d,
@@ -1779,7 +1824,8 @@ def list_downloaded(scraper: MediaScraper):
             continue
         for d in sorted(os.listdir(m_root)):
             s_path = os.path.join(m_root, d)
-            if not os.path.isdir(s_path) or s_path in seen_paths:
+            s_norm = os.path.normcase(os.path.abspath(s_path))
+            if not os.path.isdir(s_path) or s_norm in seen_paths:
                 continue
             vids = []
             for r_dir, _, files in os.walk(s_path):
@@ -1787,7 +1833,7 @@ def list_downloaded(scraper: MediaScraper):
                     if f.lower().endswith(('.mp4', '.mkv', '.avi', '.webm')) and not f.endswith(".part"):
                         vids.append(os.path.join(r_dir, f))
             if vids:
-                seen_paths.add(s_path)
+                seen_paths.add(s_norm)
                 sz_mb = os.path.getsize(vids[0]) / (1024 * 1024)
                 sz_str = f"{sz_mb / 1024:.2f} GB" if sz_mb >= 1024 else f"{sz_mb:.0f} MB"
                 items.append({
@@ -1801,6 +1847,13 @@ def list_downloaded(scraper: MediaScraper):
 
     if not items:
         print(f"No media series or movies downloaded yet in '{out_dir}'.")
+        print("\nQuick Actions: [O]pen Folder in File Explorer | [S]et Download Folder | [0] Back")
+        act = input("Choice: ").strip().lower()
+        if act == "o":
+            import config
+            config.open_in_file_manager(out_dir)
+        elif act == "s":
+            interactive_configure_download_dir(scraper)
         return
 
     print("-" * 75)
@@ -1842,7 +1895,7 @@ def list_downloaded(scraper: MediaScraper):
             print(f"      Status: {' | '.join(prog_parts)}")
 
     print("-" * 75)
-    print("Quick Actions: [1-N] Select Media to Play | [W]atch Last Played | [0] Back")
+    print("Quick Actions: [1-N] Select Media to Play | [W]atch Last Played | [O]pen in Explorer | [S]et Folder | [0] Back")
     act = input("Choice: ").strip().lower()
     if act.isdigit() and 1 <= int(act) <= len(items):
         selected = items[int(act) - 1]
@@ -1857,10 +1910,60 @@ def list_downloaded(scraper: MediaScraper):
             v_choice = prompt_int(f"Choose media [1-{len(items)}] or [0] to cancel", min_val=0, max_val=len(items))
             if v_choice > 0:
                 _play_episode_from_folder(items[v_choice - 1]["path"])
+    elif act == "o":
+        import config
+        config.open_in_file_manager(scraper.output_dir)
+    elif act == "s":
+        interactive_configure_download_dir(scraper)
+
+
+def interactive_configure_download_dir(scraper: MediaScraper):
+    """Interactive dialog to configure and persist the media download and Jellyfin directory."""
+    import config
+    print("\n========================================================================")
+    print("  Configure Download & Jellyfin Media Directory")
+    print("========================================================================")
+    curr_dir = scraper.output_dir
+    paths = config.resolve_jellyfin_paths(curr_dir)
+    print(f"Current Download Directory:\n  Root:   {curr_dir}")
+    print(f"  Anime:  {paths.get('anime')}")
+    print(f"  TV:     {paths.get('tv')}")
+    print(f"  Movies: {paths.get('movie')}")
+    if paths.get("is_dedicated_library"):
+        print(f"  Dedicated Mode: Direct {paths.get('dedicated_type').upper()} library targeted")
+    print("------------------------------------------------------------------------")
+    print("Enter a new directory path (e.g. D:\\Jellyfin or C:\\Media\\Movies),")
+    print("[D] to reset to default (Book_Files),")
+    print("[O] to open current folder in File Explorer,")
+    print("or press [Enter] to keep current setting.")
+    val = input("\nPath / Choice: ").strip()
+    if not val:
+        print("Directory unchanged.")
+        return
+    if val.lower() == "o":
+        print(f"\nOpening directory in file explorer: {curr_dir}")
+        config.open_in_file_manager(curr_dir)
+        return
+    if val.lower() in ("d", "default"):
+        val = os.path.join(config.PROJECT_DIR, "Book_Files")
+
+    ok, msg, new_paths = config.set_download_dir(val)
+    if ok:
+        scraper.output_dir = new_paths["root"]
+        print(f"\n[OK] {msg}")
+        print(f"  Anime Library:    {new_paths.get('anime')}")
+        print(f"  TV Shows Library: {new_paths.get('tv')}")
+        print(f"  Movies Library:   {new_paths.get('movie')}")
+        if new_paths.get("is_dedicated_library"):
+            print(f"  Dedicated Mode:   {new_paths.get('dedicated_type').upper()} library targeted directly")
+        print("All future downloads and library scans will use this directory.")
+    else:
+        print(f"\n[ERROR] {msg}")
+
 
 def main_menu():
     print_banner()
-    scraper = MediaScraper(output_dir="book_files")
+    scraper = MediaScraper()
 
     while True:
         import progress
@@ -1906,9 +2009,12 @@ def main_menu():
         print("  [7] Play Movie            - Desktop Video Player with Resume Tracking")
         print("\n  -- Library & Progress --")
         print("  [8] Library & Progress    - Downloaded Anime, TV Shows & Movies Watch History")
+        print("\n  -- Settings & System --")
+        print("  [9] Open Download Folder  - Open Jellyfin / Media directory in File Explorer")
+        print("  [10] Configure Folder     - Set download & Jellyfin directory path")
         print("  [0] Exit")
 
-        choice = input("\nEnter choice [0-8, W]: ").strip().lower()
+        choice = input("\nEnter choice [0-10, W, S]: ").strip().lower()
         if choice == "w":
             if last_active and (last_active.get("watch") or last_active.get("path")):
                 s_path = last_active.get("path")
@@ -1941,6 +2047,14 @@ def main_menu():
             interactive_play_movie(scraper)
         elif choice == "8":
             list_downloaded(scraper)
+        elif choice == "9":
+            import config
+            print(f"\nOpening download directory in file explorer:\n  Path: {scraper.output_dir}")
+            ok, msg = config.open_in_file_manager(scraper.output_dir)
+            if not ok:
+                print(f"Failed to open directory: {msg}")
+        elif choice in ("10", "s"):
+            interactive_configure_download_dir(scraper)
         elif choice == "0":
             print("\nExiting Alexandria. Goodbye!\n")
             try:
@@ -1949,7 +2063,7 @@ def main_menu():
                 pass
             sys.exit(0)
         else:
-            print("Invalid choice, please enter 0-8 or W.")
+            print("Invalid choice, please enter 0-10, W, or S.")
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(
@@ -2025,8 +2139,24 @@ def parse_cli_args():
     parser.add_argument(
         "--output-dir", "-o",
         type=str,
-        default="book_files",
-        help="Folder to store anime, tv, and movie media (default: book_files)"
+        default=None,
+        help="Folder to store anime, tv, and movie media (default: configured download folder)"
+    )
+    parser.add_argument(
+        "--set-download-dir", "--set-folder",
+        type=str,
+        metavar="PATH",
+        help="Set and persist the media download and Jellyfin directory"
+    )
+    parser.add_argument(
+        "--open-folder", "--open-dir",
+        action="store_true",
+        help="Open the configured download / Jellyfin directory in the system file explorer"
+    )
+    parser.add_argument(
+        "--config", "--show-config",
+        action="store_true",
+        help="Display the current download directory and resolved Jellyfin library paths"
     )
     parser.add_argument(
         "--delay",

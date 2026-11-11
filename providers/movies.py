@@ -449,7 +449,16 @@ class MovieProvider:
                 identifier = input_str
 
         # Jellyfin Movie Directory Structure: <output_dir>/movies/<Movie Title> (<Year>)/<Movie Title> (<Year>).mp4
-        movies_root = os.path.join(output_dir, "movies")
+        # If output_dir is already a movies library or contains an existing Movies folder, resolve intelligently
+        base_name = os.path.basename(os.path.normpath(output_dir)).lower()
+        if base_name in ["movies", "movie", "films", "film", "cinema"]:
+            movies_root = output_dir
+        else:
+            try:
+                import config
+                movies_root = config.get_media_dir("movie", output_dir)
+            except Exception:
+                movies_root = os.path.join(output_dir, "movies")
         os.makedirs(movies_root, exist_ok=True)
 
         movie_folder, movie_fn = get_jellyfin_movie_path(title, year=year, quality=quality, ext=".mp4")

@@ -555,12 +555,19 @@ def get_anime_progress(series_dir: str) -> Optional[Dict[str, Any]]:
     """Backward-compatible helper: retrieves anime watching progress."""
     return get_watch_progress(series_dir)
 
-def get_last_active_series(output_dir: str = "book_files") -> Optional[Dict[str, Any]]:
+def get_last_active_series(output_dir: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Find the series that the user most recently read, listened to, or watched across the library.
-    Scans root library and media subfolders (anime, tv, shows, toons).
+    Scans root library and media subfolders (anime, tv, shows, toons, movies).
     Returns dict with series name, media_type, reading, audio, toon, watch, and path.
     """
+    if output_dir is None:
+        try:
+            import config
+            output_dir = config.get_download_dir()
+        except Exception:
+            output_dir = "Book_Files"
+
     candidates = []
 
     # 1. Check root library_progress.json
@@ -574,7 +581,7 @@ def get_last_active_series(output_dir: str = "book_files") -> Optional[Dict[str,
                         val["series"] = s_name
                         s_path = os.path.join(output_dir, s_name)
                         if not os.path.isdir(s_path):
-                            for sub in ["anime", "tv", "movies", "shows", "toons"]:
+                            for sub in ["anime", "tv", "movies", "shows", "toons", "Anime", "TV", "TV Shows", "Movies", "Films"]:
                                 cand_sp = os.path.join(output_dir, sub, s_name)
                                 if os.path.isdir(cand_sp):
                                     s_path = cand_sp
@@ -586,7 +593,7 @@ def get_last_active_series(output_dir: str = "book_files") -> Optional[Dict[str,
             pass
 
     # 2. Check subcategory library_progress.json (anime, tv, movies, shows, toons)
-    for sub in ["anime", "tv", "movies", "shows", "toons"]:
+    for sub in ["anime", "tv", "movies", "shows", "toons", "Anime", "TV", "TV Shows", "Movies", "Films"]:
         sub_dir = os.path.join(output_dir, sub)
         sub_index = _get_library_index_file(sub_dir)
         if os.path.exists(sub_index):
@@ -605,9 +612,19 @@ def get_last_active_series(output_dir: str = "book_files") -> Optional[Dict[str,
 
     # 3. Direct folder search for any progress.json not yet in index
     search_dirs = [output_dir]
-    for sub in ["anime", "tv", "movies", "shows", "toons", "anime_files", "tv_files", "movie_files"]:
-        sd = os.path.join(output_dir, sub) if sub in ("anime", "tv", "movies", "shows", "toons") else sub
-        if os.path.isdir(sd):
+    try:
+        import config
+        resolved = config.resolve_jellyfin_paths(output_dir)
+        for key in ["anime", "tv", "movie"]:
+            p = resolved.get(key)
+            if p and os.path.isdir(p) and p not in search_dirs:
+                search_dirs.append(p)
+    except Exception:
+        pass
+
+    for sub in ["anime", "tv", "movies", "shows", "toons", "anime_files", "tv_files", "movie_files", "Anime", "TV", "TV Shows", "Movies", "Films"]:
+        sd = os.path.join(output_dir, sub) if sub in ("anime", "tv", "movies", "shows", "toons", "Anime", "TV", "TV Shows", "Movies", "Films") else sub
+        if os.path.isdir(sd) and sd not in search_dirs:
             search_dirs.append(sd)
 
     seen_paths = set()

@@ -156,3 +156,50 @@ class TestMediaScraper:
             assert hasattr(ms, "browse_movies")
             assert hasattr(ms, "search_anime")
             assert hasattr(ms, "search_tv_shows")
+
+
+class TestConfigAndJellyfinIntegration:
+    """Verify persistent download directory configuration and Jellyfin path resolution."""
+
+    def test_default_download_dir(self):
+        import config
+        d = config.get_download_dir()
+        assert isinstance(d, str)
+        assert len(d) > 0
+
+    def test_resolve_jellyfin_root(self):
+        import config
+        paths = config.resolve_jellyfin_paths(r"C:\Media\Jellyfin")
+        assert paths["root"] == os.path.abspath(r"C:\Media\Jellyfin")
+        assert paths["movie"].endswith("movies") or paths["movie"].endswith("Movies")
+        assert paths["tv"].endswith("tv") or paths["tv"].endswith("TV") or "shows" in paths["tv"].lower()
+        assert paths["anime"].endswith("anime") or paths["anime"].endswith("Anime")
+        assert paths["is_dedicated_library"] is False
+
+    def test_resolve_jellyfin_dedicated_movies(self):
+        import config
+        paths = config.resolve_jellyfin_paths(r"C:\Media\Jellyfin\Movies")
+        assert paths["is_dedicated_library"] is True
+        assert paths["dedicated_type"] == "movie"
+        assert paths["movie"] == os.path.abspath(r"C:\Media\Jellyfin\Movies")
+
+    def test_resolve_jellyfin_dedicated_tv(self):
+        import config
+        paths = config.resolve_jellyfin_paths(r"C:\Media\Jellyfin\TV Shows")
+        assert paths["is_dedicated_library"] is True
+        assert paths["dedicated_type"] == "tv"
+        assert paths["tv"] == os.path.abspath(r"C:\Media\Jellyfin\TV Shows")
+
+    def test_set_download_dir_lifecycle(self):
+        import config
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ok, msg, paths = config.set_download_dir(tmpdir)
+            assert ok is True
+            assert paths["root"] == os.path.abspath(tmpdir)
+            assert config.get_download_dir() == os.path.abspath(tmpdir)
+
+            # Clean up config file so other tests are not affected
+            cfg_path = config.get_active_config_path()
+            if os.path.exists(cfg_path):
+                os.remove(cfg_path)
+

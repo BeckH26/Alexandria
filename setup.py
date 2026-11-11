@@ -4,7 +4,7 @@ setup(
     name="alexandria-media",
     version="1.0.0",
     packages=find_packages(),
-    py_modules=["cli", "progress", "scraper", "run"],
+    py_modules=["cli", "progress", "scraper", "run", "config"],
     package_data={
         "providers": ["tokyoinsider_catalog.json"],
     },

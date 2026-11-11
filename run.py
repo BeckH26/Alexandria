@@ -9,6 +9,48 @@ from scraper import MediaScraper
 def main():
     args = parse_cli_args()
 
+    if args.set_download_dir:
+        import config
+        success, msg, paths = config.set_download_dir(args.set_download_dir)
+        print_banner()
+        print(f"\n{msg}")
+        if success:
+            print(f"  Root Directory:   {paths.get('root')}")
+            print(f"  Anime Library:    {paths.get('anime')}")
+            print(f"  TV Shows Library: {paths.get('tv')}")
+            print(f"  Movies Library:   {paths.get('movie')}")
+            if paths.get("is_dedicated_library"):
+                print(f"  Dedicated Mode:   {paths.get('dedicated_type').upper()} library targeted directly")
+            print("\nConfiguration saved persistently.")
+        return
+
+    if args.open_folder:
+        import config
+        target = args.output_dir or config.get_download_dir()
+        print_banner()
+        print(f"\nOpening download directory in file explorer:\n  Path: {target}")
+        ok, msg = config.open_in_file_manager(target)
+        if not ok:
+            print(f"Failed to open directory: {msg}")
+        return
+
+    if args.config:
+        import config
+        print_banner()
+        root = args.output_dir or config.get_download_dir()
+        paths = config.resolve_jellyfin_paths(root)
+        print(f"\nAlexandria Configuration & Jellyfin Integration:")
+        print(f"------------------------------------------------------------------------")
+        print(f"  Config File:      {config.get_active_config_path()}")
+        print(f"  Download Root:    {root} {'(Exists)' if os.path.exists(root) else '(Will be created)'}")
+        print(f"  Anime Library:    {paths.get('anime')}")
+        print(f"  TV Shows Library: {paths.get('tv')}")
+        print(f"  Movies Library:   {paths.get('movie')}")
+        if paths.get("is_dedicated_library"):
+            print(f"  Dedicated Mode:   Direct {paths.get('dedicated_type').upper()} folder")
+        print(f"------------------------------------------------------------------------")
+        return
+
     scraper = MediaScraper(output_dir=args.output_dir)
 
     if args.browse_anime:
@@ -135,16 +177,10 @@ def main():
 
     if args.progress:
         print_banner()
-        import os
         import re
         import progress
 
-        out_dir = args.output_dir
-        for candidate in ["Book_Files", "book_files"]:
-            if os.path.isdir(candidate):
-                out_dir = candidate
-                break
-
+        out_dir = scraper.output_dir
         if not os.path.isdir(out_dir):
             print(f"[!] No library directory found at '{out_dir}'.")
             return
@@ -153,12 +189,14 @@ def main():
         seen_paths = set()
 
         # 1. Anime Series
-        for a_root in [os.path.join(out_dir, "anime"), "anime_files"]:
+        from cli import get_anime_directories, get_tv_directories, get_movie_directories
+        for a_root in get_anime_directories(scraper):
             if not os.path.isdir(a_root):
                 continue
             for d in sorted(os.listdir(a_root)):
                 s_path = os.path.join(a_root, d)
-                if not os.path.isdir(s_path) or s_path in seen_paths:
+                s_norm = os.path.normcase(os.path.abspath(s_path))
+                if not os.path.isdir(s_path) or s_norm in seen_paths:
                     continue
                 vids = []
                 for r_dir, _, files in os.walk(s_path):
@@ -166,7 +204,7 @@ def main():
                         if f.lower().endswith(('.mp4', '.mkv', '.avi', '.webm')) and not f.endswith(".part"):
                             vids.append(f)
                 if vids:
-                    seen_paths.add(s_path)
+                    seen_paths.add(s_norm)
                     items.append({
                         "title": d,
                         "path": s_path,
@@ -175,12 +213,13 @@ def main():
                     })
 
         # 2. TV Series
-        for t_root in [os.path.join(out_dir, "tv"), "tv_files", "shows"]:
+        for t_root in get_tv_directories(scraper):
             if not os.path.isdir(t_root):
                 continue
             for d in sorted(os.listdir(t_root)):
                 s_path = os.path.join(t_root, d)
-                if not os.path.isdir(s_path) or s_path in seen_paths:
+                s_norm = os.path.normcase(os.path.abspath(s_path))
+                if not os.path.isdir(s_path) or s_norm in seen_paths:
                     continue
                 vids = []
                 for r_dir, _, files in os.walk(s_path):
@@ -188,7 +227,7 @@ def main():
                         if f.lower().endswith(('.mp4', '.mkv', '.avi', '.webm')) and not f.endswith(".part"):
                             vids.append(f)
                 if vids:
-                    seen_paths.add(s_path)
+                    seen_paths.add(s_norm)
                     items.append({
                         "title": d,
                         "path": s_path,
@@ -197,12 +236,13 @@ def main():
                     })
 
         # 3. Movie Folders
-        for m_root in [os.path.join(out_dir, "movies"), "movie_files", "movies"]:
+        for m_root in get_movie_directories(scraper):
             if not os.path.isdir(m_root):
                 continue
             for d in sorted(os.listdir(m_root)):
                 s_path = os.path.join(m_root, d)
-                if not os.path.isdir(s_path) or s_path in seen_paths:
+                s_norm = os.path.normcase(os.path.abspath(s_path))
+                if not os.path.isdir(s_path) or s_norm in seen_paths:
                     continue
                 vids = []
                 for r_dir, _, files in os.walk(s_path):
@@ -210,7 +250,7 @@ def main():
                         if f.lower().endswith(('.mp4', '.mkv', '.avi', '.webm')) and not f.endswith(".part"):
                             vids.append(os.path.join(r_dir, f))
                 if vids:
-                    seen_paths.add(s_path)
+                    seen_paths.add(s_norm)
                     sz_mb = os.path.getsize(vids[0]) / (1024 * 1024)
                     sz_str = f"{sz_mb / 1024:.2f} GB" if sz_mb >= 1024 else f"{sz_mb:.0f} MB"
                     items.append({
