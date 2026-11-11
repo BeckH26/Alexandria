@@ -8,7 +8,6 @@ version = "1.0.0"
 description = "High-Performance Anime, TV & Movie Streaming Media Studio"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
 authors = [
     { name = "Alexandria Project Contributors" }
 ]
