@@ -32,12 +32,21 @@ ENV/
 .coverage
 htmlcov/
 
-# Local media storage & downloads (Jellyfin directories)
+# Local media storage & downloaded files
 media/
 Media/
 Book_Files/
 book_files/
 downloads/
+Downloads/
+anime/
+Anime/
+tv/
+TV/
+movies/
+Movies/
+
+# Video files
 *.mp4
 *.mkv
 *.ts
@@ -46,15 +55,52 @@ downloads/
 *.mov
 *.flv
 *.webm
+*.wmv
+*.m4v
+*.3gp
+*.mpg
+*.mpeg
+
+# Subtitles & Captions
+*.srt
+*.vtt
+*.ass
+*.ssa
+*.sub
+*.idx
+
+# Audio files
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.opus
+*.wav
+*.ogg
+*.wma
+
+# Incomplete downloads and temporary chunks
 *.part
 *.ytdl
+*.aria2
+*.crdownload
+*.tmp
+*.temp
 
-# Local state, database & progress history
+# Media server metadata and artwork
+*.nfo
+folder.jpg
+poster.jpg
+fanart.jpg
+banner.jpg
+season*.jpg
+backdrop.jpg
+
+# Local user configuration, progress history & logs
+config.json
 library_progress.json
 progress.json
-config.json
 *.log
-*.tmp
 
 # Sibling projects if placed locally
 booker/
