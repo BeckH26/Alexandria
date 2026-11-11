@@ -1,0 +1,61 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions & OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+nul
+
+# Distribution & packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+*.whl
+*.tar.gz
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local media storage & downloads (Jellyfin directories)
+Book_Files/
+book_files/
+downloads/
+*.mp4
+*.mkv
+*.ts
+*.m3u8
+*.avi
+*.mov
+*.flv
+*.webm
+*.part
+*.ytdl
+
+# Local state, database & progress history
+library_progress.json
+progress.json
+*.log
+*.tmp
+
+# Sibling projects if placed locally
+booker/
+
+# IDE & Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
